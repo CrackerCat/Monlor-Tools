@@ -123,4 +123,5 @@ wgetsh /tmp/version.tar.gz $monlorurl/version.tar.gz
 tar -zxvf /tmp/version.tar.gz -C /tmp > /dev/null 2>&1
 rm -rf /tmp/version.tar.gz
 
-$monlorpath/scripts/monlor menulist > /tmp/banner
+# ssh登陆界面
+# $monlorpath/scripts/monlor menulist > /tmp/banner

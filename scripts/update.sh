@@ -87,12 +87,12 @@ sed -i "/#monlor-tools/d" /etc/profile
 sed -i "/LD_LIBRARY_PATH/d" /etc/profile
 sed -i "s#:$monlorpath/scripts##" /etc/profile
 cru d getver
+[ ! -z "`mount | grep banner`" ] && umount -lf /etc/banner
 #新增加功能设置
 result=$(cat /etc/profile | grep -c monlor/config)
 if [ "$result" == 0 ]; then
 	echo "source $monlorpath/config/profile" >> /etc/profile
 fi
-[ -z "`mount | grep banner`" ] && monlor menulist > /tmp/banner && mount --bind /tmp/banner /etc/banner
 cru a monitor "*/6 * * * * $monlorpath/scripts/monitor.sh"
 cru a dayjob "30 5 * * * $monlorpath/scripts/dayjob.sh" 
 

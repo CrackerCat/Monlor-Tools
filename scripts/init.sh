@@ -73,7 +73,7 @@ logsh "【Tools】" "运行工具箱监控脚本"
 $monlorpath/scripts/monitor.sh
 
 # ssh登录界面
-[ -z "`mount | grep banner`" ] && mount --bind /tmp/banner /etc/banner
+# [ -z "`mount | grep banner`" ] && mount --bind /tmp/banner /etc/banner
 
 xunlei_disable=$(uci -q get monlor.tools.xunlei)
 if [ "$xunlei_disable" == '1' ]; then
