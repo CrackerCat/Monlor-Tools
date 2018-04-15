@@ -13,4 +13,4 @@ e5b3e6698a16b0bbe7683902e639fcaa *./webshell.tar.gz
 d13a3a844906ad263cdf1008cfd04b97 *./aria2.tar.gz
 ed9c8ae1238919ad00aad42194dcf7c6 *./httpfile.tar.gz
 225b2f37206ec3059a8f2506a46a84e9 *./entware.tar.gz
-cd86fae666befa0c8a6b5fc46d4ccefb  ./shadowsocks.tar.gz
+2c6850c3ac012f7a93832cbfd8f00c92  ./shadowsocks.tar.gz
