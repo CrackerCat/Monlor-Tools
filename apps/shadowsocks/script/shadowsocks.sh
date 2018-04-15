@@ -177,17 +177,23 @@ load_nat() {
 		proxy_name=$(cutsh $line 1)
 		proxy_mode=$(cutsh $line 3)
 		game_mode=$(cutsh $line 4)
-		[ -z "$game_mode" ] && game_mode="$proxy_mode"
-		logsh "【$service】" "加载ACL规则:[$proxy_name]代理模式为:[$(get_mode_name $proxy_mode)]，游戏模式为:[$(get_game_mode $game_mode)]"
+		[ -z "$game_mode" ] && game_mode="$proxy_mode"		
 		iptables -t nat -A SHADOWSOCKS -m mac --mac-source $mac $(get_jump_mode $proxy_mode) $(get_action_chain $proxy_mode)
-		[ "$ssg_enable" == '1' ] && iptables -t mangle -A SHADOWSOCKS -m mac --mac-source $mac $(get_jump_mode $game_mode) $(get_action_chain $game_mode)
+		if [ "$ssg_enable" == '1' ]; then
+			iptables -t mangle -A SHADOWSOCKS -m mac --mac-source $mac $(get_jump_mode $game_mode) $(get_action_chain $game_mode)
+			args="，游戏模式为:[$(get_game_mode $game_mode)]"
+		else
+			args=""
+		fi
+		logsh "【$service】" "加载ACL规则:[$proxy_name]代理模式为:[$(get_mode_name $proxy_mode)]$args"
 	done
 	#default alc mode
 	ss_proxy_default_mode=$(uci -q get monlor.$appname.ss_proxy_default_mode) || ss_proxy_default_mode=1
 	ss_game_default_mode=$(uci -q get monlor.$appname.ss_game_default_mode) || ss_game_default_mode=0
 	result=$(cat $monlorpath/apps/$appname/config/sscontrol.conf | wc -l)
 	[ "$result" == '0' ] && args="全部主机" || args="其余主机"
-	logsh "【$service】" "加载ACL规则:[$args]代理模式为:[$(get_mode_name $ss_proxy_default_mode)]，游戏模式为:[$(get_game_mode $ss_game_default_mode)]"
+	[ "$ssg_enable" == '1' ] && args="，游戏模式为:[$(get_game_mode $ss_game_default_mode)]" || args=""
+	logsh "【$service】" "加载ACL规则:[$args]代理模式为:[$(get_mode_name $ss_proxy_default_mode)]$args"
 	iptables -t nat -A SHADOWSOCKS -p tcp -j $(get_action_chain $ss_proxy_default_mode)
 	[ "$ssg_enable" == '1' ] && iptables -t mangle -A SHADOWSOCKS -p udp -j $(get_action_chain $ss_game_default_mode)
 	[ ! -f $customize_black ] && touch $customize_black
@@ -423,7 +429,7 @@ restart()
 
 status() {
 
-	result1=$(ps | grep $monlorpath/apps/$appname/bin | grep -v grep | wc -l)
+	result1=$(ps -w | grep $monlorpath/apps/$appname/bin | grep -v grep | wc -l)
 	#http_status=`curl  -s -w %{http_code} https://www.google.com.hk/images/branding/googlelogo/1x/googlelogo_color_116x41dp.png -k -o /dev/null --socks5 127.0.0.1:1082`
 	#if [ "$result" == '0' ] || [ "$http_status" != "200" ]; then
 	result2=$(iptables -t nat -S | grep -c SHADOWSOCK)
