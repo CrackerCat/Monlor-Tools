@@ -59,19 +59,23 @@ fi
 
 # 检查CPU占用100%问题
 toptext=$(top -n1 -b | grep ustackd | grep -v grep | head -1)
-result=$(echo $toptext | awk '{print$9}')
-[ -z $(echo $result | grep "^[0-9][0-9]*$") ] && result=$(echo $toptext | awk '{print$8}')
-if [ ! -z "$result" ]; then
-	result=$(echo $result | cut -d. -f1)
-	[ "$result" -gt "20" ] && killall ustackd > /dev/null 2>&1
+if [ ! -z "$toptext" ]; then
+	result=$(echo $toptext | awk '{print$9}')
+	[ -z $(echo $result | grep "^[0-9][0-9]*$") ] && result=$(echo $toptext | awk '{print$8}') || result=""
+	if [ ! -z "$result" ]; then
+		result=$(echo $result | cut -d. -f1)
+		[ "$result" -gt "20" ] && killall ustackd > /dev/null 2>&1
+	fi
 fi
 
 toptext=$(top -n1 -b | grep himan | grep -v grep | head -1)
-result=$(echo $toptext | awk '{print$9}')
-[ -z $(echo $result | grep "^[0-9][0-9]*$") ] && result=$(echo $toptext | awk '{print$8}')
-if [ ! -z "$result" ]; then
-	result=$(echo $result | cut -d. -f1)
-	[ "$result" -gt "20" ] && killall himan > /dev/null 2>&1
+if [ ! -z "$toptext" ]; then
+	result=$(echo $toptext | awk '{print$9}')
+	[ -z $(echo $result | grep "^[0-9][0-9]*$") ] && result=$(echo $toptext | awk '{print$8}')
+	if [ ! -z "$result" ]; then
+		result=$(echo $result | cut -d. -f1)
+		[ "$result" -gt "20" ] && killall himan > /dev/null 2>&1
+	fi
 fi
 
 monitor() {
@@ -91,9 +95,9 @@ monitor() {
 		if [ "$App_enable" == '1' -a "$result" == '0' ]; then
 			logsh "【$service】" "$appname运行异常，正在重启..." 
 			$monlorpath/apps/$appname/script/$appname.sh restart 
-		elif [ "$App_enable" == '0' -a "$result" == '1' ]; then
-			logsh "【$service】" "$appname配置已修改，正在停止$appname服务..."   
-			$monlorpath/apps/$appname/script/$appname.sh stop
+		# elif [ "$App_enable" == '0' -a "$result" == '1' ]; then
+		# 	logsh "【$service】" "$appname配置已修改，正在停止$appname服务..."   
+		# 	$monlorpath/apps/$appname/script/$appname.sh stop
 		fi
 	fi
 

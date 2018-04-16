@@ -376,7 +376,7 @@ stop() {
 	killall ssg-redir > /dev/null 2>&1
 	killall ss-local > /dev/null 2>&1
 	killall ssr-local > /dev/null 2>&1
-	killall $DNSPATH > /dev/null 2>&1
+	killall dns2socks > /dev/null 2>&1
 	#删除定时规则
 	cru d $appname
 	#ps | grep dns2socks | grep -v grep | xargs kill -9 > /dev/null 2>&1
