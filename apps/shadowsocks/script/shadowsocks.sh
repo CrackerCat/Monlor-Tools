@@ -61,7 +61,7 @@ get_config() {
 	echo -e '{\n  "server":"'$ss_server'",\n  "server_port":'$ss_server_port',\n  "local_port":'1081',\n  "local_address":"'$local_ip'",\n  "password":"'$ss_password'",\n  "timeout":600,\n  "method":"'$ss_method'",\n  "protocol":"'$ssr_protocol'",\n  "obfs":"'$ssr_obfs'"\n}' > $CONFIG
 	cp $CONFIG $DNSCONF && sed -i 's/1081/1082/g' $DNSCONF
 	
-	if [ "$ssg_enable" == 1 ]; then
+	if [ "$ssg_enable" == '1' -a "$ssgid" != "$id" ]; then
 		[ -z "$ssgid" ] && logsh "【$service】" "未配置$appname游戏运行节点！" && exit
 		idinfo=`cat $SER_CONF | grep $ssgid | head -1`
 	    	ssg_name=`cutsh $idinfo 1`
@@ -91,15 +91,12 @@ dnsconfig() {
 	killall dns2socks > /dev/null 2>&1
 	iptables -t nat -D PREROUTING -s $lanip/24 -p udp --dport 53 -j DNAT --to $redip > /dev/null 2>&1
 	logsh "【$service】" "开启dns2socks进程..."
-	DNS_SERVER=$(uci -q get monlor.$appname.dns_server)
-	DNS_SERVER_PORT=$(uci -q get monlor.$appname.dns_port)
-	[ -z "$DNS_SERVER" ] && (DNS_SERVER=8.8.8.8;uci set monlor.$appname.dns_server=8.8.8.8)
-	[ -z "$DNS_SERVER_PORT" ] && (DNS_SERVER_PORT=53;uci set monlor.$appname.dns_port=53)
-	uci commit monlor
+	DNS_SERVER=$(uci -q get monlor.$appname.dns_server) || DNS_SERVER=8.8.8.8
+	DNS_SERVER_PORT=$(uci -q get monlor.$appname.dns_port) || DNS_SERVER_PORT=53
 	service_start $DNSPATH 127.0.0.1:1082 $DNS_SERVER:$DNS_SERVER_PORT 127.0.0.1:15353 
-	if [ $? -ne 0 ];then
-    	logsh "【$service】" "启动失败！"
-    	exit
+	if [ $? -ne 0 ]; then
+	    	logsh "【$service】" "启动失败！"
+	    	exit
 	fi
     
 }
@@ -160,6 +157,9 @@ load_nat() {
 	[ "$ssg_enable" == 1 ] && iptables -t nat -A SHADOWSOCKS -d $ssg_server -j RETURN 
 
 	if [ "$ssg_enable" == '1' ]; then
+		logsh "【$service】" "添加iptables的udp规则..."
+		ip rule add fwmark 0x01/0x01 table 300
+		ip route add local 0.0.0.0/0 dev lo table 300
 		iptables -t mangle -N SHADOWSOCKS
 		iptables -t mangle -N SHADOWSOCK
 		iptables -t mangle -A SHADOWSOCKS -d 0.0.0.0/8 -j RETURN
@@ -168,6 +168,9 @@ load_nat() {
 		iptables -t mangle -A SHADOWSOCKS -d $wanip/16 -j RETURN
 		iptables -t mangle -A SHADOWSOCKS -d $ss_server -j RETURN
 		iptables -t mangle -A SHADOWSOCKS -d $ssg_server -j RETURN
+
+		chmod -x /opt/filetunnel/stunserver > /dev/null 2>&1
+		killall -9 stunserver > /dev/null 2>&1
 	fi
 	#lan access control
 	[ ! -f $monlorpath/apps/shadowsocks/config/sscontrol.conf ] && touch $monlorpath/apps/shadowsocks/config/sscontrol.conf
@@ -237,59 +240,36 @@ start() {
     	
 	logsh "【$service】" "启动ss主进程($id)..."
 	[ -z "$ss_mode" ] && logsh "【$service】" "未配置$appname运行模式！" && exit
+	service_start $APPPATH -b 0.0.0.0 -u -c $CONFIG 
+	if [ $? -ne 0 ]; then
+		logsh "【$service】" "启动失败！"
+		exit
+	fi
 	case $ss_mode in
-		"gfwlist")
-			service_start $APPPATH -b 0.0.0.0 -c $CONFIG   
-			if [ $? -ne 0 ]; then
-		    	logsh "【$service】" "启动失败！"
-		    	exit
-			fi
-			ss_gfwlist
-			;;
-		"whitelist")
-			service_start $APPPATH -b 0.0.0.0 -c $CONFIG
-			if [ $? -ne 0 ]; then                                                                                                  
-		            logsh "【$service】" "启动失败！"                       
-		            exit                                
-			fi
-			ss_whitelist
-			;;
-		"wholemode")
-			service_start $APPPATH -b 0.0.0.0 -c $CONFIG 
-			if [ $? -ne 0 ]; then
-				logsh "【$service】" "启动失败！"
-				exit
-			fi
-			ss_wholemode
-			;;
-		*)
-			logsh "【$service】" "ss运行模式错误！"
+		"gfwlist") ss_gfwlist ;;
+		"whitelist") ss_whitelist ;;
+		"wholemode") ss_wholemode ;;
+		"homemode") ss_homemode ;;
+		*) logsh "【$service】" "ss运行模式错误！" ;;
 	esac
 
 	if [ "$ssg_enable" == 1 ]; then             
 		logsh "【$service】" "启动ss游戏进程($ssgid)..."
 		[ -z "$ssg_mode" ] && logsh "【$service】" "未配置$appname游戏运行模式！" && exit
-		case $ssg_mode in
-		"cngame")
+		if [ "$ssgid" != "$id" ]; then
 			service_start $SSGBIN -b 0.0.0.0 -u -c $SSGCONF
                 	if [ $? -ne 0 ]; then
                        	 	logsh "【$service】" "启动失败！"
                         	exit
                 	fi
-                	ss_addudp	
-                	ss_cngame	
-			;;
-		"frgame") 
-			service_start $SSGBIN -b 0.0.0.0 -u -c $SSGCONF
-			if [ $? -ne 0 ]; then
-				logsh "【$service】" "启动失败"
-				exit
-			fi
-			ss_addudp
-			ss_frgame
-			;;
-		*)
-			logsh "【$service】" "ss游戏模式错误！"
+                	ssg_port=1085
+                else
+                	ssg_port=1081
+                fi	
+		case $ssg_mode in
+		"cngame") ss_cngame ;;
+		"frgame") ss_frgame ;;
+		*) logsh "【$service】" "ss游戏模式错误！" ;;
 		esac
 	fi
 	
@@ -307,10 +287,7 @@ start() {
 
 }
 
-
-ss_gfwlist() {
-
-	logsh "【$service】" "添加国外黑名单规则..."
+gfwlist_ipset() {
 	rm -rf /tmp/gfwlist_ipset.conf
 	cat $gfwlist | while read line                                             
 	do                                                                         
@@ -319,6 +296,16 @@ ss_gfwlist() {
 	done    
 	ln -s /tmp/gfwlist_ipset.conf /etc/dnsmasq.d/gfwlist_ipset.conf
 	ipset -N gfwlist iphash -!
+}
+
+chnroute_ipset() {
+	sed -e "s/^/-A nogfwnet &/g" -e "1 i\-N nogfwnet hash:net" $chnroute | ipset -R -!
+}
+
+ss_gfwlist() {
+
+	logsh "【$service】" "添加国外黑名单规则..."
+	gfwlist_ipset
 	iptables -t nat -A SHADOWSOCK -p tcp -m set --match-set customize_black dst -j REDIRECT --to-port 1081
 	iptables -t nat -A SHADOWSOCK -p tcp -m set --match-set gfwlist dst -j REDIRECT --to-port 1081
 
@@ -327,36 +314,24 @@ ss_gfwlist() {
 ss_whitelist() {
 
 	logsh "【$service】" "添加国外白名单规则..."                                    
-	sed -e "s/^/-A nogfwnet &/g" -e "1 i\-N nogfwnet hash:net" $chnroute | ipset -R -!
+	chnroute_ipset
 	iptables -t nat -A SHADOWSOCK -p tcp -m set --match-set customize_black dst -j REDIRECT --to-ports 1081
 	iptables -t nat -A SHADOWSOCK -p tcp -m set ! --match-set nogfwnet dst -j REDIRECT --to-ports 1081 
-}
-
-ss_addudp() {
-
-	logsh "【$service】" "添加iptables的udp规则..."
-	#iptables -t nat -A PREROUTING -s $lanip/24 -p udp --dport 53 -j DNAT --to $lanip
-	ip rule add fwmark 0x01/0x01 table 300
-	ip route add local 0.0.0.0/0 dev lo table 300
-	
-	chmod -x /opt/filetunnel/stunserver > /dev/null 2>&1
-	killall -9 stunserver > /dev/null 2>&1
 }
 
 ss_cngame() {
 
 	logsh "【$service】" "添加国内游戏iptables规则..."
-	
-	iptables -t mangle -A SHADOWSOCK -p udp -j TPROXY --on-port 1085 --tproxy-mark 0x01/0x01         
+	[ "$ss_mode" != "gfwlist" ] && gfwlist_ipset
+	iptables -t mangle -A SHADOWSOCK -p udp -m set ! --match-set gfwlist dst -j TPROXY --on-port "$ssg_port" --tproxy-mark 0x01/0x01         
 
 }
 
 ss_frgame() {
 
 	logsh "【$service】" "添加国外游戏iptables规则..."
-
-	[ $ss_mode != "whitelist" ] && sed -e "s/^/-A nogfwnet &/g" -e "1 i\-N nogfwnet hash:net" $chnroute | ipset -R -!
-	iptables -t mangle -A SHADOWSOCK -p udp -m set ! --match-set nogfwnet dst -j TPROXY --on-port 1085 --tproxy-mark 0x01/0x01
+	[ "$ss_mode" != "whitelist" ] && chnroute_ipset
+	iptables -t mangle -A SHADOWSOCK -p udp -m set ! --match-set nogfwnet dst -j TPROXY --on-port "$ssg_port" --tproxy-mark 0x01/0x01
 
 }
 
@@ -364,6 +339,15 @@ ss_wholemode() {
 
 	logsh "【$service】" "添加全局模式iptables规则..."
 	iptables -t nat -A SHADOWSOCK -p tcp -j REDIRECT --to-ports 1081
+
+}
+
+ss_homemode() {
+
+	logsh "【$service】" "添加回国模式规则..."
+	[ "$ss_mode" != "whitelist" ] && chnroute_ipset
+	iptables -t nat -A SHADOWSOCK -p tcp -m set --match-set customize_black dst -j REDIRECT --to-ports 1081
+	iptables -t nat -A SHADOWSOCK -p tcp -m set --match-set nogfwnet dst -j REDIRECT --to-ports 1081 
 
 }
 
