@@ -60,7 +60,7 @@ get_config() {
 	#生成配置文件
 	echo -e '{\n  "server":"'$ss_server'",\n  "server_port":'$ss_server_port',\n  "local_port":'1081',\n  "local_address":"'$local_ip'",\n  "password":"'$ss_password'",\n  "timeout":600,\n  "method":"'$ss_method'",\n  "protocol":"'$ssr_protocol'",\n  "obfs":"'$ssr_obfs'"\n}' > $CONFIG
 	cp $CONFIG $DNSCONF && sed -i 's/1081/1082/g' $DNSCONF
-	
+
 	if [ "$ssg_enable" == '1' -a "$ssgid" != "$id" ]; then
 		[ -z "$ssgid" ] && logsh "【$service】" "未配置$appname游戏运行节点！" && exit
 		idinfo=`cat $SER_CONF | grep $ssgid | head -1`
@@ -154,7 +154,7 @@ load_nat() {
 	iptables -t nat -A SHADOWSOCKS -d $lanip/24 -j RETURN
 	iptables -t nat -A SHADOWSOCKS -d $wanip/16 -j RETURN
 	iptables -t nat -A SHADOWSOCKS -d $ss_server -j RETURN
-	[ "$ssg_enable" == 1 ] && iptables -t nat -A SHADOWSOCKS -d $ssg_server -j RETURN 
+	[ "$ssg_enable" == '1' -a "$ssgid" != "$id" ] && iptables -t nat -A SHADOWSOCKS -d $ssg_server -j RETURN 
 
 	if [ "$ssg_enable" == '1' ]; then
 		logsh "【$service】" "添加iptables的udp规则..."
@@ -167,7 +167,7 @@ load_nat() {
 		iptables -t mangle -A SHADOWSOCKS -d $lanip/16 -j RETURN
 		iptables -t mangle -A SHADOWSOCKS -d $wanip/16 -j RETURN
 		iptables -t mangle -A SHADOWSOCKS -d $ss_server -j RETURN
-		iptables -t mangle -A SHADOWSOCKS -d $ssg_server -j RETURN
+		[ "$ssgid" != "$id" ] && iptables -t mangle -A SHADOWSOCKS -d $ssg_server -j RETURN
 
 		chmod -x /opt/filetunnel/stunserver > /dev/null 2>&1
 		killall -9 stunserver > /dev/null 2>&1
@@ -418,8 +418,7 @@ status() {
 	#if [ "$result" == '0' ] || [ "$http_status" != "200" ]; then
 	result2=$(iptables -t nat -S | grep -c SHADOWSOCK)
 	[ "$ssg_enable" == '1' ] && ssgflag=", 游戏节点: $ssgid($ssg_mode)"
-	[ "$ssg_enable" == '1' ] && flag=4 || flag=3
-	if [ "$result1" -ge "$flag" ]; then
+	if [ "$result1" -ge "3" ]; then
 		if [ "$result2" -ge 10 ]; then
 			echo "运行节点: $id($ss_mode)$ssgflag" 
 			echo "1"
