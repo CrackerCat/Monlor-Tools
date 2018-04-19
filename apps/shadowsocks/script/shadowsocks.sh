@@ -203,13 +203,15 @@ load_nat() {
 	[ ! -f $customize_white ] && touch $customize_white
 	rm -rf /tmp/customize_*.conf
 	cat $customize_black | while read line                                                                   
-	do                                                                                              
+	do         
+		[ -z "$line" ] && continue                                                                                     
 		echo "server=/.$line/127.0.0.1#15353" >> /tmp/customize_black.conf  
 		echo "ipset=/.$line/customize_black" >> /tmp/customize_black.conf                     
 	done
 	ln -s /tmp/customize_black.conf /etc/dnsmasq.d/customize_black.conf
 	cat $customize_white | while read line
 	do
+		[ -z "$line" ] && continue
 		echo "ipset=/.$line/customize_white" >> /tmp/customize_white.conf
 	done              
 	ln -s /tmp/customize_white.conf /etc/dnsmasq.d/customize_white.conf                                                 
@@ -290,7 +292,8 @@ start() {
 gfwlist_ipset() {
 	rm -rf /tmp/gfwlist_ipset.conf
 	cat $gfwlist | while read line                                             
-	do                                                                         
+	do                  
+		[ -z "$line" ] && continue                                                       
 		echo "server=/.$line/127.0.0.1#15353" >> /tmp/gfwlist_ipset.conf
 		echo "ipset=/.$line/gfwlist" >> /tmp/gfwlist_ipset.conf  
 	done    

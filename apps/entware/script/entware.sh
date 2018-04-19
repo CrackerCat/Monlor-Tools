@@ -26,6 +26,7 @@ install() {
 		exit
 	fi
 	[ ! -f $BIN ] && mount -o blind $path /opt > /dev/null 2>&1
+	[ -z "$profilepath" ] && logsh "【$service】" "工具箱环境变量出现问题！" && exit
 	result1=$(echo $profilepath | grep -c /opt/sbin)
 	result2=$(echo $libpath | grep -c /opt/lib)
 	[ "$result1" == '0' ] && uci -q set monlor.tools.profilepath="$profilepath:/opt/bin:/opt/sbin"
