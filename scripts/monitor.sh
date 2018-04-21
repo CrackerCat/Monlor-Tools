@@ -61,7 +61,7 @@ fi
 toptext=$(top -n1 -b | grep ustackd | grep -v grep | head -1)
 if [ ! -z "$toptext" ]; then
 	result=$(echo $toptext | awk '{print$9}')
-	[ -z $(echo $result | grep "^[0-9][0-9]*$") ] && result=$(echo $toptext | awk '{print$8}') || result=""
+	[ -z $(echo $result | grep "^[0-9][0-9]*$") ] && result=$(echo $toptext | awk '{print$8}') 
 	if [ ! -z "$result" ]; then
 		result=$(echo $result | cut -d. -f1)
 		[ "$result" -gt "20" ] && killall ustackd > /dev/null 2>&1
@@ -71,7 +71,7 @@ fi
 toptext=$(top -n1 -b | grep himan | grep -v grep | head -1)
 if [ ! -z "$toptext" ]; then
 	result=$(echo $toptext | awk '{print$9}')
-	[ -z $(echo $result | grep "^[0-9][0-9]*$") ] && result=$(echo $toptext | awk '{print$8}')
+	[ -z $(echo $result | grep "^[0-9][0-9]*$") ] && result=$(echo $toptext | awk '{print$8}') 
 	if [ ! -z "$result" ]; then
 		result=$(echo $result | cut -d. -f1)
 		[ "$result" -gt "20" ] && killall himan > /dev/null 2>&1

@@ -184,7 +184,7 @@ load_nat() {
 		iptables -t nat -A SHADOWSOCKS -m mac --mac-source $mac $(get_jump_mode $proxy_mode) $(get_action_chain $proxy_mode)
 		if [ "$ssg_enable" == '1' ]; then
 			iptables -t mangle -A SHADOWSOCKS -m mac --mac-source $mac $(get_jump_mode $game_mode) $(get_action_chain $game_mode)
-			args="，游戏模式为:[$(get_game_mode $game_mode)]"
+			args="[$(get_game_mode $game_mode)]"
 		else
 			args=""
 		fi
@@ -195,7 +195,7 @@ load_nat() {
 	ss_game_default_mode=$(uci -q get monlor.$appname.ss_game_default_mode) || ss_game_default_mode=0
 	result=$(cat $monlorpath/apps/$appname/config/sscontrol.conf | wc -l)
 	[ "$result" == '0' ] && flag="全部主机" || flag="其余主机"
-	[ "$ssg_enable" == '1' ] && args="，游戏模式为:[$(get_game_mode $ss_game_default_mode)]" || args=""
+	[ "$ssg_enable" == '1' ] && args="[$(get_game_mode $ss_game_default_mode)]" || args=""
 	logsh "【$service】" "加载ACL规则:[$flag]代理模式为:[$(get_mode_name $ss_proxy_default_mode)]$args"
 	iptables -t nat -A SHADOWSOCKS -p tcp -j $(get_action_chain $ss_proxy_default_mode)
 	[ "$ssg_enable" == '1' ] && iptables -t mangle -A SHADOWSOCKS -p udp -j $(get_action_chain $ss_game_default_mode)
@@ -216,7 +216,7 @@ load_nat() {
 	done              
 	ln -s /tmp/customize_white.conf /etc/dnsmasq.d/customize_white.conf                                                 
 	ipset -N customize_black iphash -!  
-	ipset -N customize_white iphash -!	
+	ipset -N customize_white iphash -!
 	iptables -t nat -A SHADOWSOCK -p tcp -m set --match-set customize_white dst -j RETURN
 	[ "$ssg_enable" == '1' ] && iptables -t mangle -A SHADOWSOCK -p udp -m set --match-set customize_white dst -j RETURN
 
