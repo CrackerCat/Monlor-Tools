@@ -416,7 +416,7 @@ restart()
 
 status() {
 
-	result1=$(ps -w | grep $monlorpath/apps/$appname/bin | grep -v grep | wc -l)
+	result1=$(pssh | grep $monlorpath/apps/$appname/bin | grep -v grep | wc -l)
 	#http_status=`curl  -s -w %{http_code} https://www.google.com.hk/images/branding/googlelogo/1x/googlelogo_color_116x41dp.png -k -o /dev/null --socks5 127.0.0.1:1082`
 	#if [ "$result" == '0' ] || [ "$http_status" != "200" ]; then
 	result2=$(iptables -t nat -S | grep -c SHADOWSOCK)

@@ -75,7 +75,7 @@ restart () {
 
 status() {
 
-    result=$(ps -w | grep $BIN | grep -v grep | wc -l)
+    result=$(pssh | grep $BIN | grep -v grep | wc -l)
     if [ "$result" == '0' ]; then
         echo "未运行"
         echo "0"

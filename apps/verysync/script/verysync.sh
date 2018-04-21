@@ -73,7 +73,7 @@ restart () {
 
 status() {
 
-	result=$(ps | grep $BIN | grep -v grep | wc -l)
+	result=$(pssh | grep $BIN | grep -v grep | wc -l)
 	if [ "$result" -ne '0' ]; then
 		echo "运行端口号: $port"
 		echo "1"

@@ -5,12 +5,12 @@ logger -p 1 -t "【Tools】" "工具箱监测脚本启动..."
 monlorpath=$(uci -q get monlor.tools.path)
 [ $? -eq 0 ] && source "$monlorpath"/scripts/base.sh || exit
 [ ! -d "$monlorpath" ] && logsh "【Tools】" "工具箱文件未找到，请确认是否拔出外接设备！" && exit
-
+pssh c # 清除ps缓存
 # [ ! -f "$monlorconf" ] && logsh "【Tools】" "找不到配置文件，工具箱异常！" && exit
-result=$(ps | grep {monitor.sh} | grep -v grep | wc -l)
+result=$(pssh | grep {monitor.sh} | grep -v grep | wc -l)
 [ "$result" -gt '2' ] && logsh "【Tools】" "检测到monitor.sh已在运行" && exit
-result1=$(ps | grep {monlor} | grep -v grep | wc -l)
-result2=$(ps | grep {init.sh} | grep -v grep | wc -l)
+result1=$(pssh | grep {monlor} | grep -v grep | wc -l)
+result2=$(pssh | grep {init.sh} | grep -v grep | wc -l)
 [ "$result1" != '0' -a "$result2" == '0' ] && logsh "【Tools】" "检测到正在配置工具箱！" && exit
 
 #检查samba共享目录
@@ -58,7 +58,8 @@ if [ "$model" == "mips" ]; then
 fi
 
 # 检查CPU占用100%问题
-toptext=$(top -n1 -b | grep ustackd | grep -v grep | head -1)
+top -n1 -b > /tmp/toptmp.txt
+toptext=$(cat /tmp/toptmp.txt | grep ustackd | grep -v grep | head -1)
 if [ ! -z "$toptext" ]; then
 	result=$(echo $toptext | awk '{print$9}')
 	[ -z $(echo $result | grep "^[0-9][0-9]*$") ] && result=$(echo $toptext | awk '{print$8}') 
@@ -68,7 +69,7 @@ if [ ! -z "$toptext" ]; then
 	fi
 fi
 
-toptext=$(top -n1 -b | grep himan | grep -v grep | head -1)
+toptext=$(cat /tmp/toptmp.txt | grep himan | grep -v grep | head -1)
 if [ ! -z "$toptext" ]; then
 	result=$(echo $toptext | awk '{print$9}')
 	[ -z $(echo $result | grep "^[0-9][0-9]*$") ] && result=$(echo $toptext | awk '{print$8}') 
@@ -88,7 +89,7 @@ monitor() {
 	fi
 	App_enable=$(uci -q get monlor.$appname.enable) 
 	result=$($monlorpath/apps/$appname/script/$appname.sh status | tail -1) 
-	process=$(ps | grep $monlorpath/apps/$appname/script/$appname.sh | grep -v grep | wc -l)
+	process=$(pssh | grep $monlorpath/apps/$appname/script/$appname.sh | grep -v grep | wc -l)
 	
 	#检查插件运行异常情况
 	if [ "$process" == '0' ]; then

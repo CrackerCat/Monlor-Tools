@@ -142,7 +142,7 @@ restart () {
 
 status() {
 
-	result=$(ps | grep nginx | grep -v sysa | grep -v grep | wc -l)
+	result=$(pssh | grep nginx | grep -v sysa | grep -v grep | wc -l)
 	if [ "$result" != '0' ] && [ -f "$CONF" ]; then
 		echo "运行中"
 		echo "1"
