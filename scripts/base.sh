@@ -206,7 +206,7 @@ cru() {
 pssh() {
 
 	local method="$1"
-	if [ "$method" == "c" ]; then
+	if [ "$method" == 'c' ]; then
 		rm -rf /tmp/pstmp.txt
 	else
 		[ ! -f /tmp/pstmp.txt -o ! -s /tmp/pstmp.txt ] && ps -w > /tmp/pstmp.txt

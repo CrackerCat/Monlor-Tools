@@ -8,7 +8,7 @@ monlorpath=$(uci -q get monlor.tools.path)
 pssh c # 清除ps缓存
 # [ ! -f "$monlorconf" ] && logsh "【Tools】" "找不到配置文件，工具箱异常！" && exit
 result=$(pssh | grep {monitor.sh} | grep -v grep | wc -l)
-[ "$result" -gt '2' ] && logsh "【Tools】" "检测到monitor.sh已在运行" && exit
+[ "$result" -gt '3' ] && logsh "【Tools】" "检测到monitor.sh已在运行" && exit
 result1=$(pssh | grep {monlor} | grep -v grep | wc -l)
 result2=$(pssh | grep {init.sh} | grep -v grep | wc -l)
 [ "$result1" != '0' -a "$result2" == '0' ] && logsh "【Tools】" "检测到正在配置工具箱！" && exit

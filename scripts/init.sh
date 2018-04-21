@@ -37,7 +37,7 @@ source "$monlorpath"/scripts/base.sh || exit
 
 mount -o remount,rw /
 
-result=`ps | grep init.sh | grep -v grep | wc -l`
+result=`ps | grep {init.sh} | grep -v grep | wc -l`
 if [ "$result" -gt '2' ]; then
         logsh "【Tools】" "检测到初始化脚本已在运行"
         exit
