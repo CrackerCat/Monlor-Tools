@@ -77,9 +77,8 @@ restart () {
 
 status() {
 
-	num1=$(iptables -S | grep -c "$appname"-)
-	num2=$(ucish show | wc -l)
-	if [ "$num1" == "$num2" -a "$num2" != '0' ]; then
+	enable=$(uci -q get monlor.$appname.enable)
+	if [ "$enable" == '1' ]; then
 		echo "运行中"
 		echo "1"
 	else
