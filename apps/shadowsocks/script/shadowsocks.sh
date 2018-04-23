@@ -50,27 +50,28 @@ get_config() {
 	ss_method=`cutsh $idinfo 5`
 	ssr_protocol=`cutsh $idinfo 6`
 	ssr_obfs=`cutsh $idinfo 7`
-    	
-    	ss_server=`resolveip $ss_server` 
-    	[ $? -ne 0 ] && logsh "【$service】" "ss服务器地址解析失败" && exit
+	ssr_obfs_param=`cutsh $idinfo 8`
+	ss_server=`resolveip $ss_server` 
+	[ $? -ne 0 ] && logsh "【$service】" "ss服务器地址解析失败" && exit
    	if [ ! -z "$ssr_obfs" -a ! -z "$ssr_protocol" ];then
 		APPPATH=$monlorpath/apps/$appname/bin/ssr-redir
 		LOCALPATH=$monlorpath/apps/$appname/bin/ssr-local
 	fi
 	#生成配置文件
-	echo -e '{\n  "server":"'$ss_server'",\n  "server_port":'$ss_server_port',\n  "local_port":'1081',\n  "local_address":"'$local_ip'",\n  "password":"'$ss_password'",\n  "timeout":600,\n  "method":"'$ss_method'",\n  "protocol":"'$ssr_protocol'",\n  "obfs":"'$ssr_obfs'"\n}' > $CONFIG
+	echo -e '{\n  "server":"'$ss_server'",\n  "server_port":'$ss_server_port',\n  "local_port":'1081',\n  "local_address":"'$local_ip'",\n  "password":"'$ss_password'",\n  "timeout":600,\n  "method":"'$ss_method'",\n  "protocol":"'$ssr_protocol'",\n  "obfs":"'$ssr_obfs'"\n  "obfs_param":"'$ssr_obfs_param'"\n}' > $CONFIG
 	cp $CONFIG $DNSCONF && sed -i 's/1081/1082/g' $DNSCONF
 
 	if [ "$ssg_enable" == '1' -a "$ssgid" != "$id" ]; then
 		[ -z "$ssgid" ] && logsh "【$service】" "未配置$appname游戏运行节点！" && exit
 		idinfo=`cat $SER_CONF | grep $ssgid | head -1`
-	    	ssg_name=`cutsh $idinfo 1`
-	    	ssg_server=`cutsh $idinfo 2`
-	    	ssg_server_port=`cutsh $idinfo 3`
-	    	ssg_password=`cutsh $idinfo 4`
-	    	ssg_method=`cutsh $idinfo 5`
-	    	ssg_protocol=`cutsh $idinfo 6`
+    	ssg_name=`cutsh $idinfo 1`
+    	ssg_server=`cutsh $idinfo 2`
+    	ssg_server_port=`cutsh $idinfo 3`
+    	ssg_password=`cutsh $idinfo 4`
+    	ssg_method=`cutsh $idinfo 5`
+    	ssg_protocol=`cutsh $idinfo 6`
 		ssg_obfs=`cutsh $idinfo 7`
+		ssg_obfs_param=`cutsh $idinfo 8`
 		if [ ! -z "$ssg_obfs" -a ! -z "$ssg_protocol" ]; then
 			cp $monlorpath/apps/$appname/bin/ssr-redir $SSGBIN
 		else
@@ -79,7 +80,7 @@ get_config() {
 
 		ssg_server=`resolveip $ssg_server` 
     		[ $? -ne 0 ] && logsh "【$service】" "ss游戏服务器地址解析失败" && exit
-		echo -e '{\n  "server":"'$ssg_server'",\n  "server_port":'$ssg_server_port',\n  "local_port":'1085',\n  "local_address":"'$local_ip'",\n  "password":"'$ssg_password'",\n  "timeout":600,\n  "method":"'$ssg_method'",\n  "protocol":"'$ssg_protocol'",\n  "obfs":"'$ssg_obfs'"\n}' > $SSGCONF
+		echo -e '{\n  "server":"'$ssg_server'",\n  "server_port":'$ssg_server_port',\n  "local_port":'1085',\n  "local_address":"'$local_ip'",\n  "password":"'$ssg_password'",\n  "timeout":600,\n  "method":"'$ssg_method'",\n  "protocol":"'$ssg_protocol'",\n  "obfs":"'$ssg_obfs'"\n  "obfs_param":"'$ssg_obfs_param'"\n}' > $SSGCONF
 	fi
 
 }
