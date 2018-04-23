@@ -13,4 +13,4 @@ MD5 (./verysync.tar.gz) = 846acc8ea983254d241e8b89c90f9883
 MD5 (./vsftpd.tar.gz) = b09e00e8eee2bfb2df63c09124b57360
 MD5 (./webshell.tar.gz) = e1d8b41b6361d01600e5e2ef3a1d810a
 MD5 (./firewall.tar.gz) = 64babead10ceb52326704ed353f4f42e
-MD5 (./shadowsocks.tar.gz) = 63279fd66cb28fa0f3e7ea22fef353fc
+MD5 (./shadowsocks.tar.gz) = be896df005cbf7b2a968093395803919
