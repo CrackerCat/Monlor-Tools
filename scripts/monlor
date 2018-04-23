@@ -102,12 +102,16 @@ manage() {
 			[ ! -d "$samba_path" -a ! -z "$samba_path" ] && mkdir -p $samba_path
 			uci set monlor.tools.samba_path="$samba_path"
 			uci commit monlor
-			if [ -z "$samba_path" ]; then
-				/etc/init.d/samba restart &> /dev/null
+			if [ ! -f /etc/samba/smb.conf ]; then
+				logsh "【Tools】" "未找到samba配置文件！" 
 			else
-				sed -i "1,/path/ s#\(path\).*#\1 = $samba_path#" /etc/samba/smb.conf
-				killall smbd && /usr/sbin/smbd -D &> /dev/null
-				killall nmbd && /usr/sbin/nmbd -D &> /dev/null
+				if [ -z "$samba_path" ]; then
+					/etc/init.d/samba restart &> /dev/null
+				else
+					sed -i "1,/path/ s#\(path\).*#\1 = $samba_path#" /etc/samba/smb.conf
+					killall smbd && /usr/sbin/smbd -D &> /dev/null
+					killall nmbd && /usr/sbin/nmbd -D &> /dev/null
+				fi
 			fi
 		
 		;;

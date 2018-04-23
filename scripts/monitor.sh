@@ -17,12 +17,16 @@ result2=$(pssh | grep {init.sh} | grep -v grep | wc -l)
 samba_path=$(uci -q get monlor.tools.samba_path)
 if [ ! -z "$samba_path" ]; then
 	logger -s -t "【Tools】" "检查samba共享目录配置"
-	result=$(cat /etc/samba/smb.conf | grep path | head -1 | awk '{print$3}')
-	if [ "$result" != "$samba_path" ]; then
-		logsh "【Tools】" "检测到samba路径变更, 正在设置..."
-		sed -i "1,/path/ s#\(path\).*#\1 = $samba_path#" /etc/samba/smb.conf
-		killall smbd && /usr/sbin/smbd -D &> /dev/null
-		killall nmbd && /usr/sbin/nmbd -D &> /dev/null
+	if [ ! -f /etc/samba/smb.conf ]; then
+		logsh "【Tools】" "未找到samba配置文件！" 
+	else
+		result=$(cat /etc/samba/smb.conf | grep path | head -1 | awk '{print$3}')
+		if [ "$result" != "$samba_path" ]; then
+			logsh "【Tools】" "检测到samba路径变更, 正在设置..."
+			sed -i "1,/path/ s#\(path\).*#\1 = $samba_path#" /etc/samba/smb.conf
+			killall smbd && /usr/sbin/smbd -D &> /dev/null
+			killall nmbd && /usr/sbin/nmbd -D &> /dev/null
+		fi
 	fi
 fi
 
