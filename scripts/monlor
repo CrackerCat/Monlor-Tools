@@ -101,6 +101,14 @@ manage() {
 			read -p "请输入新的samba路径(回车不设置)：" samba_path
 			[ ! -d "$samba_path" -a ! -z "$samba_path" ] && mkdir -p $samba_path
 			uci set monlor.tools.samba_path="$samba_path"
+			uci commit monlor
+			if [ -z "$samba_path" ]; then
+				/etc/init.d/samba restart &> /dev/null
+			else
+				sed -i "1,/path/ s#\(path\).*#\1 = $samba_path#" /etc/samba/smb.conf
+				killall smbd && /usr/sbin/smbd -D &> /dev/null
+				killall nmbd && /usr/sbin/nmbd -D &> /dev/null
+			fi
 		
 		;;
 		6|06)
