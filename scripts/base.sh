@@ -214,3 +214,10 @@ pssh() {
 	fi
 
 }
+
+pingsh() {
+
+	ping baidu.com -c 2 &> /dev/null
+	[ $? -eq 0 ] && return 0 || return 1
+
+}
