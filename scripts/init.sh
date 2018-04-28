@@ -110,8 +110,16 @@ if [ "$ins_method" == '0' ]; then
 		mount --bind /tmp/monlorapps $monlorpath/apps
 		while(true)
 		do
-			pingsh && $monlorpath/scripts/monlor recover > /dev/null 2>&1 && break
+			if pingsh; then
+				$monlorpath/scripts/update.sh > /dev/null 2>&1
+				$monlorpath/scripts/monlor recover > /dev/null 2>&1 
+				break
+			else
+				logsh "【Tools】" "网络问题，无法恢复工具箱，5秒后重试！"
+				sleep 5
+			fi
 		done
+
 		uci -q set monlor.tools.ins_method=0
 		[ $? -eq 0 ] && initpath 
 	fi

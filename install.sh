@@ -36,7 +36,8 @@ elif [ "$model" == "R3" -o "$model" == "R3P" -o "$model" == "R3G" -o "$model" ==
 			monlorpath="$userdisk"/.monlor
 			;;
 		3)
-			logsh "【Tools】" "内存安装可以不需要外接盘，但会占用较多的内存"
+			logsh "【Tools】" "内存安装占用内存多，并会自动更新工具箱和插件(回车继续)."
+			read answer
 			monlorpath="/etc/monlor"
 			[ -z "$userdisk" ] && userdisk="$monlorpath"
 			ins_method=0
