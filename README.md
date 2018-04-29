@@ -61,7 +61,7 @@
 	5. 关于迅雷快鸟FastDick，请按https://github.com/fffonion/Xunlei-Fastdick这里的教程运行swjsq.py并找到运行成功后生成的swjsq_wget.sh文件，提取里面的uid,pwd,peerid即可。
 
 ## 更新内容：
-	2018-04-17
+	2018-04-29
 		1. 修复ss插件规则更新失败的问题
 		2. 工具箱添加环境变量文件
 		3. ss插件增加回国模式，现在可自定义黑白名单规则
